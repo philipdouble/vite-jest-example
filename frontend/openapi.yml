@@ -1,0 +1,81 @@
+---
+openapi: 3.0.2
+info:
+  title: My App
+  version: 1.0.0
+  description: My Application
+  license:
+    name: Apache 2.0
+    url: 'https://www.apache.org/licenses/LICENSE-2.0'
+servers:
+  - url: "http://{domain}:{port}{base_path}"
+    description: "API URL"
+    variables:
+      base_path:
+        description: The path on the server where the API endpoints are mounted
+        enum:
+          - /
+          - /api/v1
+        default: /
+      domain:
+        description: The fully qualified domain name or IP address of the server
+        enum:
+          - localhost
+        default: localhost
+      port:
+        description: The port on which the API is bound
+        enum:
+          - '7080'
+        default: '7080'
+tags:
+  - name: system
+paths:
+  /health:
+    get:
+      description: Checks the health of the API service
+      operationId: checkHealth
+      responses:
+        '200':
+          description: 'OK'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Errors'
+        default:
+          $ref: '#/components/responses/Error'
+      tags:
+        - system
+components:
+  securitySchemes:
+    SSO:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://sso.example.com/auth/realm/app/authorize'
+          scopes:
+            view: 'Can view information, but not change any'
+            edit: Can edit some information and see own profile
+            admin: Can edit all information and view all user profiles
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Errors'
+  schemas:
+    Errors:
+      type: object
+      description: A schema for describing all 4xx and 5xx errors as well as health check responses.
+      required:
+        - code
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        msg:
+          type: string
+        code:
+          type: number
+          format: int64
+      additionalProperties: true
